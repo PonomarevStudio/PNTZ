@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "author": "PonomareVlad",
   "scripts": {
-    "dev": "vc dev",
-    "tunnel": "vc dev & lt --port 3000"
+    "dev": "vc dev --listen=80",
+    "tunnel": "vc dev --listen=80 & lt --subdomain pntz --port 80"
   },
   "dependencies": {
     "telebot": "latest"
