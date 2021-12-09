@@ -8,7 +8,7 @@ const intro = [`Приветствую Вас, я бортовой компью�
 export class Bot extends TeleBot {
     constructor(...args) {
         super(...args)
-        this.on('text', msg => this.constructor.isCommand(msg.text) ? null : msg.reply.text(echo));
+        this.on('*', msg => this.constructor.isCommand(msg.text) ? null : msg.reply.text(echo));
         this.on('/start', async msg => await intro.forEachAsync(msg.reply.text))
         this.mod('message', data => {
             if (this.constructor.isCommand(data.message.text))
@@ -17,7 +17,7 @@ export class Bot extends TeleBot {
         });
     }
 
-    static isCommand = text => text[0] === '/'
+    static isCommand = text => text && text[0] === '/'
 }
 
 Array.prototype.forEachAsync = async function (fn) {
