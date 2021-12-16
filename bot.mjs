@@ -44,4 +44,4 @@ Array.prototype.forEachAsync = async function (fn = t => t()) {
     for (let t of this) await fn(t)
 }
 
-export default new Bot(process.env.TELEGRAM_BOT_TOKEN)
+export default new Bot({token: process.env.TELEGRAM_BOT_TOKEN, pluginFolder: 'plugins'})
