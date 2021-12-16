@@ -18,20 +18,33 @@ export class Bot extends TeleBot {
     static isCommand = text => text && text[0] === '/'
 
     async handleSubscriberState({chat: chatData}) {
-        const subscriber = await new Subscriber(chatData)
-        return await messages._broadcastFeed.filter(item => !subscriber.data[item]).forEachAsync(async item => await subscriber.set(item, true) && await this.handleMessageTask(subscriber.data.id, messages[item]))
+        const subscriber = await new Subscriber(chatData),
+            handleMessageBroadcast = (subscriber, message) => this.handleMessageBroadcast(message, subscriber)
+        return await messages._broadcastFeed.filter(item => !subscriber.data[item]).forEachAsync(handleMessageBroadcast.bind(this, subscriber))
     }
 
-    async handleMessageTask(chatId, message) {
+    async handleMessageBroadcast(message, subscriber) {
+        return await subscriber.set(message, true) && await this.handleMessageTask(messages[message], subscriber.data.id)
+    }
+
+    async handleMessageTask(message, chatId) {
         const queue = Array.isArray(message) ? message : [message]
-        return queue.forEachAsync(async message => {
+        return await queue.forEachAsync(async message => {
             let args = [], method = 'sendMessage'
             if (typeof message === 'object') {
                 if (message._method && this[message._method]) method = message._method
                 if (message._args && Array.isArray(message._args)) args = message._args
             } else args.push(message)
-            await this[method](chatId, ...args)
+            return await this[method](chatId, ...args).catch(console.debug)
         })
+    }
+
+    async broadcast(message) {
+        if (!message || !messages._broadcastFeed.includes(message)) throw Error('Wrong message');
+        const subscribers = await Subscriber.subscribers.find({[message]: {$ne: true}}).toArray();
+        await subscribers.forEachAsync(subscriber =>
+            new Subscriber(subscriber).then(this.handleMessageBroadcast.bind(this, message)))
+        return {message: messages[message], count: subscribers.length};
     }
 }
 
