@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="dark light" name="color-scheme">
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0" name="viewport">
+    <title>Статистика подписчиков</title>
+    <style>
+        :root {
+            font-family: -apple-system, Helvetica, sans-serif;
+            display: flex;
+            text-align: center;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+
+        subscribers-count {
+            font-size: 64px;
+            font-weight: 100;
+        }
+    </style>
+</head>
+<body>
+<h1>Количество подписчиков в боте</h1>
+<subscribers-count></subscribers-count>
+</body>
+<script>
+    const json = response => response.json()
+    window.customElements.define('subscribers-count', class SubscribersCount extends HTMLElement {
+        constructor() {
+            super();
+            this.count = fetch('/api/stat').then(json).then(({subscribers = 0} = {}) => subscribers)
+        }
+
+        async connectedCallback() {
+            this.innerText = 'Загрузка...'
+            this.innerText = await this.count
+        }
+    })
+</script>
+</html>
